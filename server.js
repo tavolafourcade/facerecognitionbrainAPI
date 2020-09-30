@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
 
+//Create the app running express
 const app = express();
 
 app.use(bodyParser.json());
@@ -65,7 +66,7 @@ app.post('/register', (req, res) => {
             id: '125',
             name: name,
             email: email,
-            password: password,
+            // password: password,
             entries: 0,
             joined: new Date()
         }
@@ -107,10 +108,15 @@ app.put('/image', (req,res) => {
 
 })
 
+//We're using the port 3000 to listen
 app.listen(3000, () => {
-    console.log('app is running in port 3000');
+    console.log('app is running on port 3000');
 })
 
+
+/*
+To test use: npm start
+*/
 /*
 API design
 signin   --> POST = success/fail    (We're posting some data)
