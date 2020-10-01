@@ -1,14 +1,18 @@
 const express = require('express');
-const bodyParser = require('body-parser');
+const bodyParser = require('body-parser'); //to parse json
 const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
 
 //Create the app running express
 const app = express();
 
+//n order to use bodyParser middleware
+//It needs to be declared after the app variable has been created
 app.use(bodyParser.json());
 
+//In order of test in our local host we need to do something called **CORS.** This is a middleware.
 app.use(cors());
+
 const database = {
     users: [
         {
@@ -36,6 +40,8 @@ const database = {
     //     }
     // ]
 }
+
+//Get request will return the users registered
 app.get('/', (req, res) => {
     res.send(database.users);
 })
@@ -119,7 +125,7 @@ To test use: npm start
 */
 /*
 API design
-signin   --> POST = success/fail    (We're posting some data)
+signin   --> POST = success/fail    (We're posting some data like password)
 register --> POST =   user object (We want to add data to the DB)
 /profile/: userId --> GET = user    (each user has it own home screen)
 /image --> PUT --> user  (we're updating the score of the user)
