@@ -3,6 +3,21 @@ const bodyParser = require('body-parser'); //to parse json
 const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
 
+//Initializing the database
+//this is a function that's running knex const automatically
+const knex = require('knex');
+
+const postgres = knex({
+    client: 'pg',//the client is postgress (pg)
+    connection: {
+      host : '127.0.0.1', //this means localhost
+      user : 'postgres',
+      password: '',
+      database : 'smart-brain'
+    }
+  });
+
+  console.log(postgres.select('*').from('users'));
 //Create the app running express
 const app = express();
 
@@ -97,7 +112,7 @@ app.get('/profile/:id', (req, res) => {
     }
 })
 
-app.put('/image', (req,res) => {
+app.put('/image',(req,res) => {
     const { id } = req.body;
     let found = false;
     database.users.forEach(user => {
