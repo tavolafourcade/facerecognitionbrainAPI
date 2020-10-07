@@ -17,7 +17,9 @@ const postgres = knex({
     }
   });
 
-  console.log(postgres.select('*').from('users'));
+postgres.select('*').from('users').then(data => {
+    console.log(data);
+});
 //Create the app running express
 const app = express();
 
@@ -77,23 +79,36 @@ app.post('/register', (req, res) => {
     const {email, name, password} = req.body;
 
     //Password encryption
-    bcrypt.hash(password, null, null, function(err, hash) {
-        // Store hash in your password DB.
-        console.log(hash);
-    });
+    // bcrypt.hash(password, null, null, function(err, hash) {
+    //     // Store hash in your password DB.
+    //     console.log(hash);
+    // });
 
-    database.users.push(
-        {
-            id: '125',
-            name: name,
+    //Now we're going to use knex instead of the local DB
+    // database.users.push(
+    //     {
+    //         id: '125',
+    //         name: name,
+    //         email: email,
+    //         // password: password,
+    //         entries: 0,
+    //         joined: new Date()
+    //     }
+    // )
+
+    //Using Knex\
+    db('users')
+        .returning('*')
+        .insert({
             email: email,
-            // password: password,
-            entries: 0,
+            name: name,
             joined: new Date()
-        }
-    )
-    res.json(database.users[database.users.length-1]);
-    
+    })
+    .then(user => {
+        res.json(user[0]); 
+    })
+    .catch(err => res.status(400).json('unable to register'));
+
 })
 
 // Profile
