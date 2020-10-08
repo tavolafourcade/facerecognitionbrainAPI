@@ -5,9 +5,9 @@ const cors = require('cors');
 
 //Initializing the database
 //this is a function that's running knex const automatically
-var knex = require('knex');
+const knex = require('knex');
 
-var postgres = knex({
+const db = knex({
     client: 'pg',//the client is postgress (pg)
     connection: {
       host : '127.0.0.1', //this means localhost
@@ -17,7 +17,7 @@ var postgres = knex({
     }
   });
 
-postgres.select('*').from('users').then(data =>{
+db.select('*').from('users').then(data =>{
     console.log(data);
 });
 //Create the app running express
