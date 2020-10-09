@@ -18,7 +18,7 @@ const db = knex({
   });
 
 db.select('*').from('users').then(data =>{
-    console.log(data);
+    // console.log(data);
 });
 //Create the app running express
 const app = express();
@@ -30,33 +30,33 @@ app.use(bodyParser.json());
 //In order of test in our local host we need to do something called **CORS.** This is a middleware.
 app.use(cors());
 
-const database = {
-    users: [
-        {
-            id: '123',
-            name: 'Octavio',
-            password: 'cookies',
-            email: 'octavio@gmail.com',
-            entries: 0,
-            joined: new Date()
-        },
-        {
-            id: '124',
-            name: 'Ruber',
-            email: 'ruber@gmail.com',
-            password: 'pastry',
-            entries: 0,
-            joined: new Date()
-        }
-    ]//,
-    // login: [
-    //     {
-    //         id: '789',
-    //         has: '',
-    //         email: 'octavio@gmail.com'
-    //     }
-    // ]
-}
+// const database = {
+//     users: [
+//         {
+//             id: '123',
+//             name: 'Octavio',
+//             password: 'cookies',
+//             email: 'octavio@gmail.com',
+//             entries: 0,
+//             joined: new Date()
+//         },
+//         {
+//             id: '124',
+//             name: 'Ruber',
+//             email: 'ruber@gmail.com',
+//             password: 'pastry',
+//             entries: 0,
+//             joined: new Date()
+//         }
+//     ]//,
+//     // login: [
+//     //     {
+//     //         id: '789',
+//     //         has: '',
+//     //         email: 'octavio@gmail.com'
+//     //     }
+//     // ]
+// }
 
 //Get request will return the users registered
 app.get('/', (req, res) => {
@@ -65,12 +65,30 @@ app.get('/', (req, res) => {
 
 // Sign In 
 app.post('/signin', (req, res) => {
-    if (req.body.email === database.users[0].email &&
-        req.body.password === database.users[0].password) {
-            res.json(database.users[0]);
-        } else {
-            res.status(400).json("error loggin in");
+    // if (req.body.email === database.users[0].email &&
+    //     req.body.password === database.users[0].password) {
+    //         res.json(database.users[0]);
+    //     } else {
+    //         res.status(400).json("error loggin in");
+    //     }
+    db.select('email', 'hash').from('login')
+    .where('email', '=', req.body.email)
+    .then(data => {
+        const isValid = bcrypt.compareSync(req.body.password, data[0].hash);
+        if (isValid){
+            return db.select('*').from('users')
+            .where('email','=', req.body.email)
+            .then(user => {
+                // console.log(user);
+                res.json(user[0])
+            })
+            .catch(err => res.status(400).json('unable to get user'))
+        }else{
+            res.status(400).json('wrong credentials')
         }
+        
+    })
+    .catch(err => res.status(400).json('wrong credentials'))
     
 })
 
@@ -87,6 +105,8 @@ app.post('/register', (req, res) => {
 
     //Implementing the password encryption with DB
     const hash = bcrypt.hashSync(password);
+
+    //We create a transaction in order to update both Register and Login
     db.transaction(trx =>{
         trx.insert({
             hash: hash,
