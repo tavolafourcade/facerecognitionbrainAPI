@@ -3,10 +3,16 @@ const bodyParser = require('body-parser'); //to parse json
 const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
 
+
+//Importing controllers
+const register = require('./controllers/register');
+const signin = require('./controllers/signin');
+const profileGet = require('./controllers/profile');
+const image = require('./controllers/image');
 //Initializing the database
 //this is a function that's running knex const automatically
 const knex = require('knex');
-
+const profile = require('./controllers/profile');
 const db = knex({
     client: 'pg',//the client is postgress (pg)
     connection: {
@@ -64,128 +70,17 @@ app.get('/', (req, res) => {
 })
 
 // Sign In 
-app.post('/signin', (req, res) => {
-    // if (req.body.email === database.users[0].email &&
-    //     req.body.password === database.users[0].password) {
-    //         res.json(database.users[0]);
-    //     } else {
-    //         res.status(400).json("error loggin in");
-    //     }
-    db.select('email', 'hash').from('login')
-    .where('email', '=', req.body.email)
-    .then(data => {
-        const isValid = bcrypt.compareSync(req.body.password, data[0].hash);
-        if (isValid){
-            return db.select('*').from('users')
-            .where('email','=', req.body.email)
-            .then(user => {
-                // console.log(user);
-                res.json(user[0])
-            })
-            .catch(err => res.status(400).json('unable to get user'))
-        }else{
-            res.status(400).json('wrong credentials')
-        }
-        
-    })
-    .catch(err => res.status(400).json('wrong credentials'))
-    
-})
+app.post('/signin', (req, res) => {signin.handleSignin(req, res, db, bcrypt)})
 
 // Register
-app.post('/register', (req, res) => {
-    const {email, name, password} = req.body;
-
-    
-    //Password encryption
-    // bcrypt.hash(password, null, null, function(err, hash) {
-    //     // Store hash in your password DB.
-    //     console.log(hash);
-    // });
-
-    //Implementing the password encryption with DB
-    const hash = bcrypt.hashSync(password);
-
-    //We create a transaction in order to update both Register and Login
-    db.transaction(trx =>{
-        trx.insert({
-            hash: hash,
-            email: email
-        })
-        .into('login')
-        .returning('email')
-        .then(loginEmail =>{
-            //Using Knex\
-            return trx('users')
-            .returning('*') //users insert raul and return all columns
-            .insert({
-                email: loginEmail[0],
-                name: name,
-                joined: new Date()
-            })
-            .then(user => {
-            res.json(user[0]); 
-            })
-        })
-        .then(trx.commit)
-        .catch(trx.rollback)
-    })
-    //Now we're going to use knex instead of the local DB
-    // database.users.push(
-    //     {
-    //         id: '125',
-    //         name: name,
-    //         email: email,
-    //         // password: password,
-    //         entries: 0,
-    //         joined: new Date()
-    //     }
-    // )
-
- 
-    .catch(err => res.status(400).json('unable to register'));
-
-})
+//Dependency injection: were injecting db and bcrypt into the register function
+app.post('/register', (req, res) => {register.handleRegister(req, res, db, bcrypt)})
 
 // Profile
-app.get('/profile/:id', (req, res) => {
-    const { id } = req.params;
-    //let found = false;
-    //Using knex
-    // database.users.forEach(user => {
-    //     if (user.id === id){
-    //         found = true;
-    //         return res.json(user);
-    //     }
-    // })
-    db.select('*').from('users').where({
-        id: id
-    }).then(user => {
-        if (user.length){
-            res.json(user[0]);
-        }
-        
-    })
-    .catch(err => res.status(400).json('Not found'))
-
-    // if (!found){
-    //     res.status(400).json('not found')
-    // }
-})
+app.get('/profile/:id', (req, res) => {profileGet.handleProfileGet(req, res, db)})
 
 //The image endpoint updates the entries and it increases the count
-app.put('/image',(req,res) => {
-    const { id } = req.body;
-    
-    db('users').where('id', '=', id)
-    .increment('entries', 1)
-    .returning('entries')
-    .then(entries => {
-        res.json(entries[0]);
-    })
-    .catch(err => res.status(400).json('Unable to get entries'))
-
-})
+app.put('/image', (req, res) => {image.handleImagePut(req, res, db)})
 
     //Since were using Knex, we don't need this anymore
     // let found = false;
