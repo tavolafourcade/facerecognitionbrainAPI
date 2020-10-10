@@ -101,10 +101,16 @@ app.post('/imageurl', (req, res) => {image.handleApiCall(req, res)})
 
 
 //We're using the port 3000 to listen
-app.listen(3000, () => {
-    console.log('app is running on port 3000');
+const PORT = process.env.PORT;
+app.listen(PORT, () => {
+    console.log(`app is running on port ${PORT}`);
 })
-
+//en bash terminal se pone:
+//  bash
+//  PORT=3000 node server.js
+console.log(PORT)
+//process.env tells us a lot of ino such which terminal program
+// I'm running
 
 /*
 To test use: npm start
