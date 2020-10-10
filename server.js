@@ -96,6 +96,8 @@ app.put('/image', (req, res) => {image.handleImagePut(req, res, db)})
     //     res.status(400).json('not found there')
     // }
 
+//In order to send the API key from the Back-end to the Front-end
+app.post('/imageurl', (req, res) => {image.handleApiCall(req, res)})
 
 
 //We're using the port 3000 to listen
